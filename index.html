@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defeat The Enemy - Bergerak</title>
     <style>
-        /* ... CSS Anda yang lain tetap sama ... */
+        /* ... CSS Anda tetap sama ... */
         body {
             margin: 0;
             font-family: 'Arial', sans-serif;
@@ -51,31 +51,189 @@
         }
 
         #start-screen {
-            /* GANTI 'latar_belakang_game.png' dengan nama file latar belakang Anda */
-            background-image: url('images/latar_belakang_game.png'); 
+            background-image: url('https://i.imgur.com/SYIqTrJ.png');
             justify-content: center;
         }
 
-        /* ... CSS Anda yang lain tetap sama ... */
+        .start-screen-content h1 {
+            font-size: 2.5em;
+            color: #FFD700;
+            text-shadow: 2px 2px #000;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        #startButton {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background-color: #76B900;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px #5a8c00;
+        }
+        #startButton:active {
+            box-shadow: 0 2px #5a8c00;
+            transform: translateY(2px);
+        }
 
         #quiz-screen {
-            /* GANTI 'latar_belakang_game.png' dengan nama file latar belakang Anda */
-            background-image: url('images/latar_belakang_game.png');
+            background-image: url('https://i.imgur.com/SYIqTrJ.png');
             justify-content: flex-start;
         }
-        
-        /* ... (Sisa CSS Anda tetap sama) ... */
+
+        #muteButton { /* Tombol Mute/Unmute */
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px; /* Ukuran ikon speaker */
+            cursor: pointer;
+            z-index: 100;
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px 8px;
+            border-radius: 5px;
+        }
+
+        #question-area {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-sizing: border-box;
+            margin-top: 40px; /* Beri ruang untuk tombol mute */
+        }
+
+        #question-text {
+            font-size: 1.1em;
+            margin: 0;
+            color: #FFD700;
+        }
+
+        #answer-buttons {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .answer-btn {
+            background-color: rgba(20, 20, 40, 0.8);
+            color: white;
+            border: 2px solid #505070;
+            padding: 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background-color: rgba(40, 40, 60, 0.9);
+            border-color: #FFD700;
+        }
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        #battle-area {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            margin-top: auto;
+            overflow: visible;
+        }
+
+        #health-bars {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .health-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 45%;
+        }
+
+        .health-label {
+            font-size: 0.9em;
+            color: #FFD700;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 20px;
+            background-color: rgba(50, 50, 50, 0.8);
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .health-fill {
+            height: 100%;
+            /* Warna awal diatur oleh JS saat update */
+            transition: width 0.5s ease-in-out, background 0.5s ease-in-out;
+            border-radius: 8px;
+        }
+
+        .health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
         #player-sprite, #enemy-sprite {
             width: 64px;
             height: 64px;
             object-fit: contain;
             position: absolute;
-            bottom: 20px; 
+            bottom: 20px; /* Sesuaikan jika perlu agar pas */
             display: block;
             z-index: 10;
             transition: none;
         }
-        /* ... (Sisa CSS Anda tetap sama) ... */
+
+        #game-over-screen {
+            justify-content: center;
+            text-align: center;
+            background-color: #111;
+        }
+        #game-over-message {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #FFD700;
+        }
+        #restartButton {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #FFD700;
+            color: #333;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #restartButton:hover {
+            background-color: #FFA500;
+        }
     </style>
 </head>
 <body>
@@ -115,8 +273,8 @@
                 </div>
             </div>
             <div id="battle-area">
-                <img id="player-sprite" src="images/Char2_idle_left.png" alt="Player">
-                <img id="enemy-sprite" src="images/Char2_idle_right.png" alt="Enemy">
+                <img id="player-sprite" src="https://i.imgur.com/Lcw9D0W.png" alt="Player">
+                <img id="enemy-sprite" src="https://i.imgur.com/peebDwR.png" alt="Enemy">
             </div>
         </div>
 
@@ -128,7 +286,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Variabel Elemen DOM --- (Tetap sama)
+            // --- Variabel Elemen DOM ---
             const startScreen = document.getElementById('start-screen');
             const quizScreen = document.getElementById('quiz-screen');
             const gameOverScreen = document.getElementById('game-over-screen');
@@ -149,77 +307,51 @@
             const enemyHealthText = document.getElementById('enemy-health-text');
             const muteButton = document.getElementById('muteButton');
 
-            // --- ASET AUDIO --- (Biarkan seperti ini dulu, kecuali Anda sudah upload audio ke repo)
-            const punchSound = new Audio('https://raw.githubusercontent.com/agusrifani14/game-audio/main/videoplayback%20(1).weba');
-            const backgroundMusic = new Audio('https://raw.githubusercontent.com/agusrifani14/game-audio/main/videoplayback.weba');
+            // --- ASET AUDIO ---
+            const punchSound = new Audio('https://raw.githubusercontent.com/agusrifani14/game-sounds/main/videoplayback%20(1).weba');
+            const backgroundMusic = new Audio('https://raw.githubusercontent.com/agusrifani14/game-sounds/main/videoplayback.weba');
             backgroundMusic.loop = true;
             let isMusicMuted = false;
 
-            // --- ASET GAMBAR --- (INI BAGIAN UTAMA YANG DIUBAH)
-            // PASTIKAN NAMA FILE DI BAWAH INI SESUAI DENGAN YANG ADA DI FOLDER 'images' ANDA
+            // --- ASET GAMBAR ---
             const assets = {
                 player: {
-                    idle: [
-                        "images/Char2_idle_left.png", 
-                        "images/Char2_idle_left2.png", 
-                        "images/Char2_idle_left3.png", 
-                        "images/Char2_idle_left4.png", 
-                        "images/Char2_idle_left5.png", 
-                        "images/Char2_idle_left6.png"
-                    ],
-                    attack: [
-                        "images/Char2_two_attack_left1.png", 
-                        "images/Char2_two_attack_left2.png", 
-                        "images/Char2_two_attack_left3.png", 
-                        "images/Char2_two_attack_left4.png", 
-                        "images/Char2_two_attack_left5.png", 
-                        "images/Char2_two_attack_left6.png"
-                    ]
+                    idle: ["https://i.imgur.com/Lcw9D0W.png", "https://i.imgur.com/0knCL1C.png", "https://i.imgur.com/WejRYLI.png", "https://i.imgur.com/iWiKoh9.png", "https://i.imgur.com/cqKD8J8.png", "https://i.imgur.com/8SWGuE7.png"],
+                    attack: ["https://i.imgur.com/5oMYeGo.png", "https://i.imgur.com/qbFdlGK.png", "https://i.imgur.com/o9OvTuc.png", "https://i.imgur.com/285jPBN.png", "https://i.imgur.com/sQlFQVr.png", "https://i.imgur.com/Wq6WiWg.png"]
                 },
                 enemy: {
-                    idle: [ // Sesuaikan jika sprite musuh berbeda atau menggunakan set 'right'
-                        "images/Char2_idle_right.png", 
-                        "images/Char2_idle_right2.png", 
-                        "images/Char2_idle_right3.png", 
-                        "images/Char2_idle_right4.png", 
-                        "images/Char2_idle_right5.png", 
-                        "images/Char2_idle_right6.png"
-                    ],
-                    attack: [ // Sesuaikan jika sprite musuh berbeda atau menggunakan set 'right'
-                        "images/Char2_atk_right.png", 
-                        "images/Char2_atk_right2.png", 
-                        "images/Char2_atk_right3.png", 
-                        "images/Char2_atk_right4.png", 
-                        "images/Char2_atk_right5.png", 
-                        "images/Char2_atk_right6.png"
-                    ]
+                    idle: ["https://i.imgur.com/peebDwR.png", "https://i.imgur.com/ZXGXFyV.png", "https://i.imgur.com/vQ1DQxp.png", "https://i.imgur.com/Y36H6rq.png", "https://i.imgur.com/0ldZbG0.png", "https://i.imgur.com/BhFRltZ.png"],
+                    attack: ["https://i.imgur.com/AGh72W6.png", "https://i.imgur.com/6ugtbLr.png", "https://i.imgur.com/1rOImbB.png", "https://i.imgur.com/A2geAiJ.png", "https://i.imgur.com/xeanWL7.png", "https://i.imgur.com/3TV1sMd.png"]
                 }
             };
-            // --- DATA PERTANYAAN --- (Tetap sama)
-            // ... (Tidak perlu diubah)
-
-            // --- Variabel Status Game --- (Tetap sama)
-            // ... (Tidak perlu diubah)
+            // --- DATA PERTANYAAN ---
+            const questions = [
+                { question: "Komponen fisik komputer yang dapat disentuh disebut...", options: ["a. Software", "b. Brainware", "c. Hardware", "d. Malware"], correctAnswerIndex: 2 },
+                { question: "Perangkat lunak sistem operasi adalah...", options: ["a. MS Word", "b. Windows 10", "c. Chrome", "d. Photoshop"], correctAnswerIndex: 1 },
+                { question: "CPU singkatan dari...", options: ["a. Central Process U", "b. Central Program U", "c. Computer Processing U", "d. Central Processing U"], correctAnswerIndex: 3 },
+                { question: "RAM berfungsi untuk...", options: ["a. Menyimpan data permanen", "b. Menyimpan data sementara", "c. Menampilkan gambar", "d. Mengolah suara"], correctAnswerIndex: 1 },
+                { question: "Hard Disk Drive (HDD) adalah...", options: ["a. Memori utama", "b. Penyimpanan sementara", "c. Penyimpanan permanen", "d. Prosesor grafis"], correctAnswerIndex: 2 }
+            ];
             
-            // --- Variabel Posisi & Animasi --- (Tetap sama)
-            // ... (Tidak perlu diubah)
+            // --- Variabel Status Game ---
+            let currentQuestionIndex = 0;
+            let animationIntervalPlayer, animationIntervalEnemy;
+            let isAnimating = false; 
+            let playerHealth = 100;
+            let enemyHealth = 100;
+            const maxHealth = 100;
+            const damageAmount = 20;
 
-            // --- FUNGSI UTAMA --- (Semua fungsi JavaScript lainnya tetap sama)
-            // ... (Tidak perlu diubah, karena logika game tidak bergantung pada URL aset secara langsung setelah objek 'assets' didefinisikan)
-            // initializeSpritePositions, loadQuestion, handleAnswer, dst. akan menggunakan path dari objek 'assets' di atas.
+            // --- Variabel Posisi & Animasi ---
+            let playerHomeX; // Akan diinisialisasi
+            let enemyHomeX;  // Akan diinisialisasi
+            const marginFromEdge = 30; // Jarak sprite dari tepi battle area
+            
+            const lungeDistance = 70;   
+            const animationSpeed = 120; 
+            const moveDuration = 3500;   // Durasi gerakan maju diubah menjadi 4 detik (4000ms)
 
-            // --- Inisialisasi di akhir ---
-            // Pastikan fungsi ini terpanggil setelah DOM siap
-            // ... (Sisa kode JavaScript Anda tetap sama)
-            // Fungsi switchScreen, stopAllAnimations, playSpriteAnimation, moveSprite, dll.
-
-            // (Bagian JavaScript Anda yang lain dari DOMContentLoaded hingga akhir tetap sama)
-            // Saya akan menyertakan keseluruhan <script> untuk kejelasan:
-
-            // ... (Semua fungsi dari: function switchScreen(screenId) { ... } 
-            //      hingga akhir event listener muteButton tetap sama seperti kode asli Anda)
-
-            // --- FUNGSI UTAMA (lanjutan) ---
+            // --- FUNGSI UTAMA ---
             function switchScreen(screenId) {
                 document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
                 const activeScreen = document.getElementById(screenId);
@@ -277,11 +409,14 @@
 
                 if (isNaN(startLeft)) {
                     console.error(`Error: startLeft is NaN for ${spriteElement.id}. Current style.left: ${spriteElement.style.left}`);
+                    // Atur posisi awal jika NaN, misal ke posisi home
                     if (spriteElement.id === 'player-sprite') spriteElement.style.left = playerHomeX + 'px';
                     else spriteElement.style.left = enemyHomeX + 'px';
-                    if(onCompleteCallback) onCompleteCallback(); 
+                    // Coba panggil lagi setelah posisi diatur, atau berikan callback error
+                    if(onCompleteCallback) onCompleteCallback(); // Atau panggil callback error
                     return;
                 }
+
 
                 function animationStep(currentTime) {
                     if (!startTime) startTime = currentTime;
@@ -334,14 +469,15 @@
                 const battleWidth = battleArea.offsetWidth;
                 if (battleWidth > 0 && playerSprite && enemySprite && playerSprite.offsetWidth > 0 && enemySprite.offsetWidth > 0) {
                     playerHomeX = marginFromEdge;
-                    enemyHomeX = battleWidth - enemySprite.offsetWidth - marginFromEdge; 
+                    enemyHomeX = battleWidth - enemySprite.offsetWidth - marginFromEdge; // Menggunakan enemySprite.offsetWidth
                     
                     playerSprite.style.left = playerHomeX + 'px';
                     enemySprite.style.left = enemyHomeX + 'px';
                     console.log(`Positions Initialized: Player Left: ${playerHomeX}px, Enemy Left: ${enemyHomeX}px`);
                 } else {
                     playerHomeX = marginFromEdge;
-                    enemyHomeX = (360 - 64 - marginFromEdge); 
+                    // Fallback jika dimensi belum siap, gunakan lebar sprite default (misal 64px)
+                    enemyHomeX = (360 - 64 - marginFromEdge); // Menggunakan lebar game-container default jika battleArea belum siap
                     playerSprite.style.left = playerHomeX + 'px';
                     enemySprite.style.left = enemyHomeX + 'px';
                     console.warn("Battle area or sprite width not fully available. Using fallback positions.");
@@ -401,12 +537,13 @@
 
             function performPlayerAttack() {
                 console.log("performPlayerAttack: Start");
+                // Ambil posisi aktual sprite sebelum bergerak, bukan hanya home position
                 const currentSpritePos = parseFloat(playerSprite.style.left); 
                 const attackPos = currentSpritePos + lungeDistance;
 
-                moveSprite(playerSprite, attackPos, moveDuration, () => { 
+                moveSprite(playerSprite, attackPos, moveDuration, () => { // 1. Maju
                     console.log(`performPlayerAttack: Player maju selesai. Posisi: ${playerSprite.style.left}`);
-                    playSpriteAnimation(playerSprite, assets.player.attack, false, animationSpeed, () => { 
+                    playSpriteAnimation(playerSprite, assets.player.attack, false, animationSpeed, () => { // 2. Animasi Attack
                         console.log("performPlayerAttack: Animasi attack player selesai");
                         punchSound.currentTime = 0; punchSound.play().catch(e => console.error("Error playing punch sound:", e));
                         enemyHealth = Math.max(0, enemyHealth - damageAmount);
@@ -415,10 +552,10 @@
                         
                         if (checkGameEnd()) { return; }
 
-                        moveSprite(playerSprite, playerHomeX, moveDuration / 2, () => { 
+                        moveSprite(playerSprite, playerHomeX, moveDuration / 2, () => { // 3. Mundur ke posisi home
                             console.log(`performPlayerAttack: Player mundur selesai. Posisi: ${playerSprite.style.left}`);
-                            playSpriteAnimation(playerSprite, assets.player.idle, true, animationSpeed); 
-                            setTimeout(() => { 
+                            playSpriteAnimation(playerSprite, assets.player.idle, true, animationSpeed); // 4. Kembali ke Idle
+                            setTimeout(() => { // 5. Delay sebelum pertanyaan baru
                                 console.log("performPlayerAttack: Timeout for next question");
                                 currentQuestionIndex++;
                                 loadQuestion(); 
@@ -430,13 +567,15 @@
 
             function performEnemyAttack() {
                 console.log("performEnemyAttack: Start");
+                // Ambil posisi aktual sprite sebelum bergerak
                 const currentSpritePos = parseFloat(enemySprite.style.left);
                 const attackPos = currentSpritePos - lungeDistance;
                 console.log(`performEnemyAttack: currentPos=${currentSpritePos}, attackPos=${attackPos}, homePos=${enemyHomeX}`);
 
-                moveSprite(enemySprite, attackPos, moveDuration, () => { 
+
+                moveSprite(enemySprite, attackPos, moveDuration, () => { // 1. Maju
                     console.log(`performEnemyAttack: Enemy maju selesai. Posisi: ${enemySprite.style.left}`);
-                    playSpriteAnimation(enemySprite, assets.enemy.attack, false, animationSpeed, () => { 
+                    playSpriteAnimation(enemySprite, assets.enemy.attack, false, animationSpeed, () => { // 2. Animasi Attack
                         console.log("performEnemyAttack: Animasi attack enemy selesai");
                         punchSound.currentTime = 0; punchSound.play().catch(e => console.error("Error playing punch sound:", e));
                         playerHealth = Math.max(0, playerHealth - damageAmount);
@@ -445,10 +584,10 @@
 
                         if (checkGameEnd()) { return; }
                         
-                        moveSprite(enemySprite, enemyHomeX, moveDuration / 2, () => { 
+                        moveSprite(enemySprite, enemyHomeX, moveDuration / 2, () => { // 3. Mundur ke posisi home
                             console.log(`performEnemyAttack: Enemy mundur selesai. Posisi: ${enemySprite.style.left}`);
-                            playSpriteAnimation(enemySprite, assets.enemy.idle, true, animationSpeed); 
-                                setTimeout(() => { 
+                            playSpriteAnimation(enemySprite, assets.enemy.idle, true, animationSpeed); // 4. Kembali ke Idle
+                             setTimeout(() => { // 5. Delay sebelum pertanyaan baru
                                 console.log("performEnemyAttack: Timeout for next question");
                                 currentQuestionIndex++;
                                 loadQuestion();
@@ -464,7 +603,7 @@
                 isAnimating = false; 
                 stopAllAnimations(); 
                 resetHealth(); 
-                initializeSpritePositions(); 
+                initializeSpritePositions(); // Panggil SETELAH resetHealth jika health bar mempengaruhi layout, atau sebelumnya jika tidak
                 switchScreen('quiz-screen'); 
                 loadQuestion();
             }
@@ -492,28 +631,11 @@
             });
             
             // Initialize
-            // Variabel yang dibutuhkan oleh fungsi di bawah ini (questions, dll.) sudah didefinisikan di atas
-            let currentQuestionIndex = 0; // Ini sudah ada di atas, pastikan tidak duplikat
-            let animationIntervalPlayer, animationIntervalEnemy; // Ini sudah ada di atas
-            let isAnimating = false;  // Ini sudah ada di atas
-            let playerHealth = 100; // Ini sudah ada di atas
-            let enemyHealth = 100; // Ini sudah ada di atas
-            const maxHealth = 100; // Ini sudah ada di atas
-            const damageAmount = 20; // Ini sudah ada di atas
-
-            let playerHomeX; 
-            let enemyHomeX; 
-            const marginFromEdge = 30; 
-            
-            const lungeDistance = 70;   
-            const animationSpeed = 120; 
-            const moveDuration = 3500;   
-
             setTimeout(() => { 
                 initializeSpritePositions();
                 resetHealth(); 
                 switchScreen('start-screen'); 
-            }, 100); 
+            }, 100); // Beri sedikit waktu agar battleArea.offsetWidth bisa dihitung
         });
     </script>
 </body>
