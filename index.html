@@ -3,19 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Battle</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Defeat The Enemy - Bergerak</title>
+    <style>
+        /* ... CSS Anda yang lain tetap sama ... */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        #game-container {
+            width: 360px;
+            height: 640px;
+            border: 2px solid #FFF;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            background-color: #000;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #start-screen {
+            /* GANTI 'latar_belakang_game.png' dengan nama file latar belakang Anda */
+            background-image: url('images/latar_belakang_game.png'); 
+            justify-content: center;
+        }
+
+        /* ... CSS Anda yang lain tetap sama ... */
+
+        #quiz-screen {
+            /* GANTI 'latar_belakang_game.png' dengan nama file latar belakang Anda */
+            background-image: url('images/latar_belakang_game.png');
+            justify-content: flex-start;
+        }
+        
+        /* ... (Sisa CSS Anda tetap sama) ... */
+        #player-sprite, #enemy-sprite {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            position: absolute;
+            bottom: 20px; 
+            display: block;
+            z-index: 10;
+            transition: none;
+        }
+        /* ... (Sisa CSS Anda tetap sama) ... */
+    </style>
 </head>
 <body>
     <div id="game-container">
         <div id="start-screen" class="screen active">
             <div class="start-screen-content">
-                <h1>QUIZ BATTLE</h1>
+                <h1>Defeat The Enemy</h1>
                 <button id="startButton">Mulai</button>
             </div>
         </div>
 
         <div id="quiz-screen" class="screen">
+            <div id="muteButton">🔈</div>
             <div id="question-area">
                 <p id="question-text"></p>
             </div>
@@ -25,12 +98,25 @@
                 <button class="answer-btn" id="btnC"></button>
                 <button class="answer-btn" id="btnD"></button>
             </div>
-            <div id="battle-area">
-                <img id="player-sprite" src="images/player_idle_1.png" alt="Player">
-                <img id="enemy-sprite" src="images/enemy_idle_1.png" alt="Enemy">
+            <div id="health-bars">
+                <div class="health-container">
+                    <div class="health-label">Player</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="player-health"></div>
+                        <div class="health-text" id="player-health-text">100/100</div>
+                    </div>
+                </div>
+                <div class="health-container">
+                    <div class="health-label">Enemy</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="enemy-health"></div>
+                        <div class="health-text" id="enemy-health-text">100/100</div>
+                    </div>
+                </div>
             </div>
-            <div id="score-area" style="display:none;">
-                 <p>Player HP: <span id="player-hp">100</span> | Enemy HP: <span id="enemy-hp">100</span></p>
+            <div id="battle-area">
+                <img id="player-sprite" src="images/Char2_idle_left.png" alt="Player">
+                <img id="enemy-sprite" src="images/Char2_idle_right.png" alt="Enemy">
             </div>
         </div>
 
@@ -40,6 +126,395 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Variabel Elemen DOM --- (Tetap sama)
+            const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
+            const gameOverScreen = document.getElementById('game-over-screen');
+            const startButton = document.getElementById('startButton');
+            const restartButton = document.getElementById('restartButton');
+            const questionTextElement = document.getElementById('question-text');
+            const answerButtonsElements = [
+                document.getElementById('btnA'), document.getElementById('btnB'),
+                document.getElementById('btnC'), document.getElementById('btnD')
+            ];
+            const playerSprite = document.getElementById('player-sprite');
+            const enemySprite = document.getElementById('enemy-sprite');
+            const gameOverMessage = document.getElementById('game-over-message');
+            const battleArea = document.getElementById('battle-area');
+            const playerHealthBar = document.getElementById('player-health');
+            const enemyHealthBar = document.getElementById('enemy-health');
+            const playerHealthText = document.getElementById('player-health-text');
+            const enemyHealthText = document.getElementById('enemy-health-text');
+            const muteButton = document.getElementById('muteButton');
+
+            // --- ASET AUDIO --- (Biarkan seperti ini dulu, kecuali Anda sudah upload audio ke repo)
+            const punchSound = new Audio('https://raw.githubusercontent.com/agusrifani14/game-sounds/main/videoplayback%20(1).weba');
+            const backgroundMusic = new Audio('https://raw.githubusercontent.com/agusrifani14/game-sounds/main/videoplayback.weba');
+            backgroundMusic.loop = true;
+            let isMusicMuted = false;
+
+            // --- ASET GAMBAR --- (INI BAGIAN UTAMA YANG DIUBAH)
+            // PASTIKAN NAMA FILE DI BAWAH INI SESUAI DENGAN YANG ADA DI FOLDER 'images' ANDA
+            const assets = {
+                player: {
+                    idle: [
+                        "images/Char2_idle_left.png", 
+                        "images/Char2_idle_left2.png", 
+                        "images/Char2_idle_left3.png", 
+                        "images/Char2_idle_left4.png", 
+                        "images/Char2_idle_left5.png", 
+                        "images/Char2_idle_left6.png"
+                    ],
+                    attack: [
+                        "images/Char2_two_attack_left1.png", 
+                        "images/Char2_two_attack_left2.png", 
+                        "images/Char2_two_attack_left3.png", 
+                        "images/Char2_two_attack_left4.png", 
+                        "images/Char2_two_attack_left5.png", 
+                        "images/Char2_two_attack_left6.png"
+                    ]
+                },
+                enemy: {
+                    idle: [ // Sesuaikan jika sprite musuh berbeda atau menggunakan set 'right'
+                        "images/Char2_idle_right.png", 
+                        "images/Char2_idle_right2.png", 
+                        "images/Char2_idle_right3.png", 
+                        "images/Char2_idle_right4.png", 
+                        "images/Char2_idle_right5.png", 
+                        "images/Char2_idle_right6.png"
+                    ],
+                    attack: [ // Sesuaikan jika sprite musuh berbeda atau menggunakan set 'right'
+                        "images/Char2_atk_right.png", 
+                        "images/Char2_atk_right2.png", 
+                        "images/Char2_atk_right3.png", 
+                        "images/Char2_atk_right4.png", 
+                        "images/Char2_atk_right5.png", 
+                        "images/Char2_atk_right6.png"
+                    ]
+                }
+            };
+            // --- DATA PERTANYAAN --- (Tetap sama)
+            // ... (Tidak perlu diubah)
+
+            // --- Variabel Status Game --- (Tetap sama)
+            // ... (Tidak perlu diubah)
+            
+            // --- Variabel Posisi & Animasi --- (Tetap sama)
+            // ... (Tidak perlu diubah)
+
+            // --- FUNGSI UTAMA --- (Semua fungsi JavaScript lainnya tetap sama)
+            // ... (Tidak perlu diubah, karena logika game tidak bergantung pada URL aset secara langsung setelah objek 'assets' didefinisikan)
+            // initializeSpritePositions, loadQuestion, handleAnswer, dst. akan menggunakan path dari objek 'assets' di atas.
+
+            // --- Inisialisasi di akhir ---
+            // Pastikan fungsi ini terpanggil setelah DOM siap
+            // ... (Sisa kode JavaScript Anda tetap sama)
+            // Fungsi switchScreen, stopAllAnimations, playSpriteAnimation, moveSprite, dll.
+
+            // (Bagian JavaScript Anda yang lain dari DOMContentLoaded hingga akhir tetap sama)
+            // Saya akan menyertakan keseluruhan <script> untuk kejelasan:
+
+            // ... (Semua fungsi dari: function switchScreen(screenId) { ... } 
+            //      hingga akhir event listener muteButton tetap sama seperti kode asli Anda)
+
+            // --- FUNGSI UTAMA (lanjutan) ---
+            function switchScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+                const activeScreen = document.getElementById(screenId);
+                if (activeScreen) activeScreen.classList.add('active');
+
+                if (screenId === 'quiz-screen' && !isMusicMuted) {
+                    backgroundMusic.play().catch(e => console.warn("Autoplay background music dicegah:", e));
+                } else if (screenId !== 'quiz-screen') {
+                    backgroundMusic.pause();
+                }
+            }
+
+            function stopAllAnimations() {
+                if (animationIntervalPlayer) clearInterval(animationIntervalPlayer);
+                if (animationIntervalEnemy) clearInterval(animationIntervalEnemy);
+                animationIntervalPlayer = null;
+                animationIntervalEnemy = null;
+            }
+
+            function playSpriteAnimation(spriteElement, frameArray, loop = true, speed = 150, onEndCallback = null) {
+                if (!frameArray || frameArray.length === 0) {
+                    if(onEndCallback) onEndCallback(); 
+                    return;
+                }
+                
+                let frameIndex = 0;
+                const isPlayer = spriteElement.id === "player-sprite";
+                
+                if (isPlayer && animationIntervalPlayer) clearInterval(animationIntervalPlayer);
+                if (!isPlayer && animationIntervalEnemy) clearInterval(animationIntervalEnemy);
+                
+                function animate() {
+                    spriteElement.src = frameArray[frameIndex];
+                    frameIndex++;
+                    
+                    if (!loop && frameIndex >= frameArray.length) {
+                        if (isPlayer) { clearInterval(animationIntervalPlayer); animationIntervalPlayer = null; }
+                        else { clearInterval(animationIntervalEnemy); animationIntervalEnemy = null; }
+                        if (onEndCallback) onEndCallback();
+                        return;
+                    }
+                    if (loop && frameIndex >= frameArray.length) frameIndex = 0;
+                }
+                animate(); 
+                const interval = setInterval(animate, speed);
+                if (isPlayer) animationIntervalPlayer = interval;
+                else animationIntervalEnemy = interval;
+            }
+
+            function moveSprite(spriteElement, targetLeft, duration, onCompleteCallback) {
+                console.log(`moveSprite called for ${spriteElement.id}. Target: ${targetLeft}, Duration: ${duration}`);
+                const startLeft = parseFloat(spriteElement.style.left); 
+                const distance = targetLeft - startLeft;
+                let startTime = null;
+
+                if (isNaN(startLeft)) {
+                    console.error(`Error: startLeft is NaN for ${spriteElement.id}. Current style.left: ${spriteElement.style.left}`);
+                    if (spriteElement.id === 'player-sprite') spriteElement.style.left = playerHomeX + 'px';
+                    else spriteElement.style.left = enemyHomeX + 'px';
+                    if(onCompleteCallback) onCompleteCallback(); 
+                    return;
+                }
+
+                function animationStep(currentTime) {
+                    if (!startTime) startTime = currentTime;
+                    const elapsedTime = currentTime - startTime;
+                    let progress = Math.min(elapsedTime / duration, 1);
+                    
+                    spriteElement.style.left = (startLeft + distance * progress) + 'px';
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animationStep);
+                    } else {
+                        spriteElement.style.left = targetLeft + 'px'; 
+                        if (onCompleteCallback) onCompleteCallback();
+                    }
+                }
+                requestAnimationFrame(animationStep);
+            }
+
+            function updateHealthBar(healthBarElement, healthTextElement, currentHp, maxHp) {
+                const percentage = Math.max(0, (currentHp / maxHp) * 100);
+                healthBarElement.style.width = percentage + '%';
+                healthTextElement.textContent = `${Math.max(0, currentHp)}/${maxHp}`;
+                
+                if (percentage > 60) healthBarElement.style.background = 'linear-gradient(90deg, #44ff44 0%, #88ff44 100%)';
+                else if (percentage > 30) healthBarElement.style.background = 'linear-gradient(90deg, #ffaa00 0%, #ffdd44 100%)';
+                else healthBarElement.style.background = 'linear-gradient(90deg, #ff4444 0%, #ff6666 100%)';
+            }
+            
+            function resetHealth() {
+                console.log("Resetting health");
+                playerHealth = maxHealth;
+                enemyHealth = maxHealth;
+                updateHealthBar(playerHealthBar, playerHealthText, playerHealth, maxHealth);
+                updateHealthBar(enemyHealthBar, enemyHealthText, enemyHealth, maxHealth);
+            }
+
+            function checkGameEnd() {
+                if (playerHealth <= 0) {
+                    console.log("Player kalah - Game End");
+                    endGame(false, "Game Over! Enemy Menang!"); return true;
+                } else if (enemyHealth <= 0) {
+                    console.log("Enemy kalah - Game End");
+                    endGame(true, "Selamat! Kamu Menang!"); return true;
+                }
+                return false;
+            }
+
+            function initializeSpritePositions() {
+                console.log("Initializing sprite positions...");
+                const battleWidth = battleArea.offsetWidth;
+                if (battleWidth > 0 && playerSprite && enemySprite && playerSprite.offsetWidth > 0 && enemySprite.offsetWidth > 0) {
+                    playerHomeX = marginFromEdge;
+                    enemyHomeX = battleWidth - enemySprite.offsetWidth - marginFromEdge; 
+                    
+                    playerSprite.style.left = playerHomeX + 'px';
+                    enemySprite.style.left = enemyHomeX + 'px';
+                    console.log(`Positions Initialized: Player Left: ${playerHomeX}px, Enemy Left: ${enemyHomeX}px`);
+                } else {
+                    playerHomeX = marginFromEdge;
+                    enemyHomeX = (360 - 64 - marginFromEdge); 
+                    playerSprite.style.left = playerHomeX + 'px';
+                    enemySprite.style.left = enemyHomeX + 'px';
+                    console.warn("Battle area or sprite width not fully available. Using fallback positions.");
+                }
+                playerSprite.style.display = 'block';
+                enemySprite.style.display = 'block';
+            }
+
+            function loadQuestion() {
+                console.log("Loading question. Current index:", currentQuestionIndex, "isAnimating:", isAnimating);
+                
+                if (checkGameEnd()) { 
+                    console.log("Game already ended before loading new question.");
+                    return; 
+                }
+
+                if (currentQuestionIndex >= questions.length) {
+                    console.log("Semua pertanyaan habis.");
+                    if (playerHealth > 0 && enemyHealth > 0) endGame(true, "Pertanyaan Habis! Kamu Menang Poin!");
+                    else if (playerHealth > enemyHealth) endGame(true, "Pertanyaan Habis! Kamu Menang Poin Terbanyak!");
+                    else if (enemyHealth > playerHealth) endGame(false, "Pertanyaan Habis! Enemy Menang Poin Terbanyak!");
+                    else endGame(false, "Pertanyaan Habis! Skor Seri!");
+                    return;
+                }
+                
+                const q = questions[currentQuestionIndex];
+                questionTextElement.textContent = q.question;
+                answerButtonsElements.forEach((button, index) => {
+                    button.textContent = q.options[index];
+                    button.onclick = () => handleAnswer(index, q.correctAnswerIndex);
+                    button.disabled = false;
+                });
+
+                playSpriteAnimation(playerSprite, assets.player.idle, true, animationSpeed);
+                playSpriteAnimation(enemySprite, assets.enemy.idle, true, animationSpeed);
+                isAnimating = false; 
+                console.log("Question loaded, isAnimating set to false.");
+            }
+
+            function handleAnswer(selectedIndex, correctIndex) {
+                if (isAnimating) {
+                    console.log("Handle answer called while isAnimating is true. Aborting.");
+                    return;
+                }
+                isAnimating = true; 
+                console.log("Handling answer, isAnimating set to true.");
+                answerButtonsElements.forEach(button => button.disabled = true);
+
+                if (selectedIndex === correctIndex) {
+                    console.log("Jawaban benar, player menyerang.");
+                    performPlayerAttack();
+                } else {
+                    console.log("Jawaban salah, enemy menyerang.");
+                    performEnemyAttack();
+                }
+            }
+
+            function performPlayerAttack() {
+                console.log("performPlayerAttack: Start");
+                const currentSpritePos = parseFloat(playerSprite.style.left); 
+                const attackPos = currentSpritePos + lungeDistance;
+
+                moveSprite(playerSprite, attackPos, moveDuration, () => { 
+                    console.log(`performPlayerAttack: Player maju selesai. Posisi: ${playerSprite.style.left}`);
+                    playSpriteAnimation(playerSprite, assets.player.attack, false, animationSpeed, () => { 
+                        console.log("performPlayerAttack: Animasi attack player selesai");
+                        punchSound.currentTime = 0; punchSound.play().catch(e => console.error("Error playing punch sound:", e));
+                        enemyHealth = Math.max(0, enemyHealth - damageAmount);
+                        updateHealthBar(enemyHealthBar, enemyHealthText, enemyHealth, maxHealth);
+                        console.log("performPlayerAttack: Enemy health updated to", enemyHealth);
+                        
+                        if (checkGameEnd()) { return; }
+
+                        moveSprite(playerSprite, playerHomeX, moveDuration / 2, () => { 
+                            console.log(`performPlayerAttack: Player mundur selesai. Posisi: ${playerSprite.style.left}`);
+                            playSpriteAnimation(playerSprite, assets.player.idle, true, animationSpeed); 
+                            setTimeout(() => { 
+                                console.log("performPlayerAttack: Timeout for next question");
+                                currentQuestionIndex++;
+                                loadQuestion(); 
+                            }, 300); 
+                        });
+                    });
+                });
+            }
+
+            function performEnemyAttack() {
+                console.log("performEnemyAttack: Start");
+                const currentSpritePos = parseFloat(enemySprite.style.left);
+                const attackPos = currentSpritePos - lungeDistance;
+                console.log(`performEnemyAttack: currentPos=${currentSpritePos}, attackPos=${attackPos}, homePos=${enemyHomeX}`);
+
+                moveSprite(enemySprite, attackPos, moveDuration, () => { 
+                    console.log(`performEnemyAttack: Enemy maju selesai. Posisi: ${enemySprite.style.left}`);
+                    playSpriteAnimation(enemySprite, assets.enemy.attack, false, animationSpeed, () => { 
+                        console.log("performEnemyAttack: Animasi attack enemy selesai");
+                        punchSound.currentTime = 0; punchSound.play().catch(e => console.error("Error playing punch sound:", e));
+                        playerHealth = Math.max(0, playerHealth - damageAmount);
+                        updateHealthBar(playerHealthBar, playerHealthText, playerHealth, maxHealth);
+                        console.log("performEnemyAttack: Player health updated to", playerHealth);
+
+                        if (checkGameEnd()) { return; }
+                        
+                        moveSprite(enemySprite, enemyHomeX, moveDuration / 2, () => { 
+                            console.log(`performEnemyAttack: Enemy mundur selesai. Posisi: ${enemySprite.style.left}`);
+                            playSpriteAnimation(enemySprite, assets.enemy.idle, true, animationSpeed); 
+                                setTimeout(() => { 
+                                console.log("performEnemyAttack: Timeout for next question");
+                                currentQuestionIndex++;
+                                loadQuestion();
+                            }, 300); 
+                        });
+                    });
+                });
+            }
+            
+            function startGame() {
+                console.log("Starting game...");
+                currentQuestionIndex = 0;
+                isAnimating = false; 
+                stopAllAnimations(); 
+                resetHealth(); 
+                initializeSpritePositions(); 
+                switchScreen('quiz-screen'); 
+                loadQuestion();
+            }
+            
+            function endGame(playerWins, message) {
+                console.log("Game ended. Player wins:", playerWins, "Message:", message);
+                stopAllAnimations();
+                backgroundMusic.pause(); 
+                gameOverMessage.textContent = message;
+                switchScreen('game-over-screen');
+                isAnimating = false; 
+            }
+
+            // --- EVENT LISTENERS ---
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', startGame); 
+
+            muteButton.addEventListener('click', () => {
+                isMusicMuted = !isMusicMuted;
+                backgroundMusic.muted = isMusicMuted;
+                muteButton.textContent = isMusicMuted ? '🔇' : '🔈';
+                if (!isMusicMuted && quizScreen.classList.contains('active')) {
+                    backgroundMusic.play().catch(e => console.warn("Gagal play music setelah unmute:", e));
+                }
+            });
+            
+            // Initialize
+            // Variabel yang dibutuhkan oleh fungsi di bawah ini (questions, dll.) sudah didefinisikan di atas
+            let currentQuestionIndex = 0; // Ini sudah ada di atas, pastikan tidak duplikat
+            let animationIntervalPlayer, animationIntervalEnemy; // Ini sudah ada di atas
+            let isAnimating = false;  // Ini sudah ada di atas
+            let playerHealth = 100; // Ini sudah ada di atas
+            let enemyHealth = 100; // Ini sudah ada di atas
+            const maxHealth = 100; // Ini sudah ada di atas
+            const damageAmount = 20; // Ini sudah ada di atas
+
+            let playerHomeX; 
+            let enemyHomeX; 
+            const marginFromEdge = 30; 
+            
+            const lungeDistance = 70;   
+            const animationSpeed = 120; 
+            const moveDuration = 3500;   
+
+            setTimeout(() => { 
+                initializeSpritePositions();
+                resetHealth(); 
+                switchScreen('start-screen'); 
+            }, 100); 
+        });
+    </script>
 </body>
 </html>
