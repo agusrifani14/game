@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen active">
+            <div class="start-screen-content">
+                <h1>QUIZ BATTLE</h1>
+                <button id="startButton">Mulai</button>
+            </div>
+        </div>
+
+        <div id="quiz-screen" class="screen">
+            <div id="question-area">
+                <p id="question-text"></p>
+            </div>
+            <div id="answer-buttons">
+                <button class="answer-btn" id="btnA"></button>
+                <button class="answer-btn" id="btnB"></button>
+                <button class="answer-btn" id="btnC"></button>
+                <button class="answer-btn" id="btnD"></button>
+            </div>
+            <div id="battle-area">
+                <img id="player-sprite" src="images/player_idle_1.png" alt="Player">
+                <img id="enemy-sprite" src="images/enemy_idle_1.png" alt="Enemy">
+            </div>
+            <div id="score-area" style="display:none;">
+                 <p>Player HP: <span id="player-hp">100</span> | Enemy HP: <span id="enemy-hp">100</span></p>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen">
+            <h2 id="game-over-message"></h2>
+            <button id="restartButton">Main Lagi</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
